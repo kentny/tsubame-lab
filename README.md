@@ -44,54 +44,43 @@
 
 ## ビルドのしかた
 
-外部のライブラリは使わない。必要なのは Go と Git だけ。
+外部のライブラリは使わない。必要なのは Git、Go（`go.mod` に書いた版以上）、make。
 
-### mise を使う（おすすめ）
+- Go: Mac は `brew install go`、または https://go.dev/dl/ から入れる。`go version` で版を確かめられる。
+- make: Mac は Git と一緒に入る開発ツール（Xcode Command Line Tools）に入っている。Windows には入っていないので、
+  下の「make を使わない」手順でビルドする。
 
-[mise](https://mise.jdx.dev/) が、`mise.toml` に書いた版の Go を入れ、よく使う作業をまとめて実行する。
+### make を使う
 
-1. mise を入れる（1回だけ）。Mac は `brew install mise`、Windows は `winget install jdx.mise`。そのほかは mise の
-   ドキュメントのとおり。
-2. ソースを取ってきて、Go を入れる。
+```
+git clone https://github.com/kentny/udemy-course-design.git
+cd udemy-course-design
+git checkout network/lab-tool
+cd courses/network/tools/tsubame-lab
+make test
+make build
+```
 
-   ```
-   git clone https://github.com/kentny/udemy-course-design.git
-   cd udemy-course-design
-   git checkout network/lab-tool
-   cd courses/network/tools/tsubame-lab
-   mise trust
-   mise install
-   ```
-
-   `mise trust` は、このディレクトリの `mise.toml` を使ってよいと mise に伝える操作（初回だけ）。
-
-3. テストして、ビルドする。
-
-   ```
-   mise run test
-   mise run build
-   ```
-
-   このディレクトリに `tsubame-lab`（Windows では `tsubame-lab.exe`）ができる。
+このディレクトリに `tsubame-lab` ができる。
 
 | 作業 | 内容 |
 |---|---|
-| `mise run test` | 検査（`go vet`）とテスト。8000番・8080番が空いていれば、実際に起動して止める流れも確かめる |
-| `mise run build` | このPC向けの実行ファイルを作る |
-| `mise run dist 0.1.0` | 配布する4つのOS向けのファイルとチェックサムの一覧を `dist/` に作る（macOS・Linux で実行する。`zip` を使う） |
-| `mise run clean` | 作ったファイルを消す |
+| `make test` | 検査（`go vet`）とテスト。8000番・8080番が空いていれば、実際に起動して止める流れも確かめる |
+| `make build` | このPC向けの実行ファイルを作る |
+| `make dist VERSION=0.1.0` | 配布する4つのOS向けのファイルとチェックサムの一覧を `dist/` に作る（`zip` を使う） |
+| `make clean` | 作ったファイルを消す |
 
-### mise を使わない
+### make を使わない（Windows など）
 
-Go（`mise.toml` に書いた版）を自分で入れてから、同じディレクトリで次を実行する。
+同じディレクトリで次を実行する。
 
 ```
 go vet ./...
 go test ./...
-go build -o tsubame-lab .
+go build -o tsubame-lab.exe .
 ```
 
-Windows では最後の行を `go build -o tsubame-lab.exe .` にする。配布するファイルは `scripts/build.sh 0.1.0` で作る。
+Mac・Linux では最後の行を `go build -o tsubame-lab .` にする。
 
 ### 動かして確かめる
 
