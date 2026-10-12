@@ -29,5 +29,10 @@ build linux amd64 dist/work/tsubame-lab
 tar -C dist/work -czf dist/tsubame-lab-linux-x64.tar.gz tsubame-lab
 
 rm -rf dist/work
-(cd dist && sha256sum tsubame-lab-* > SHA256SUMS.txt)
+if command -v sha256sum >/dev/null 2>&1; then
+	sum="sha256sum"
+else
+	sum="shasum -a 256" # macOS
+fi
+(cd dist && $sum tsubame-lab-* > SHA256SUMS.txt)
 ls -l dist

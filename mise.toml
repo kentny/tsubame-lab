@@ -1,0 +1,22 @@
+# 開発に使う Go の版と、よく使う作業。使い方は README.md の「作る人向け」。
+
+[tools]
+go = "1.24"
+
+[tasks.test]
+description = "検査とテスト"
+run = ["go vet ./...", "go test -count=1 ./..."]
+
+[tasks.build]
+description = "このPC向けの実行ファイルを作る（tsubame-lab、Windows では tsubame-lab.exe）"
+run = "go build -o tsubame-lab ."
+run_windows = "go build -o tsubame-lab.exe ."
+
+[tasks.dist]
+description = "配布する4つのOS向けのファイルとチェックサムを dist/ に作る（macOS・Linux。例: mise run dist 0.1.0）"
+run = "scripts/build.sh"
+
+[tasks.clean]
+description = "作ったファイルを消す"
+run = "rm -rf dist tsubame-lab tsubame-lab.exe"
+run_windows = "if exist dist rmdir /s /q dist & if exist tsubame-lab.exe del tsubame-lab.exe"

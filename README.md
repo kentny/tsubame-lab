@@ -42,12 +42,75 @@
 | `logs/proxy-error.log` | `2026-10-12T09:37:31.827+09:00 [error] "GET /" upstream=127.0.0.1:8080 status=502: connect: connection refused` |
 | `logs/app.log` | `2026-10-12T00:37:31.763Z GET / 200 dur_ms=0`（app のログは UTC） |
 
+## ビルドのしかた
+
+外部のライブラリは使わない。必要なのは Go と Git だけ。
+
+### mise を使う（おすすめ）
+
+[mise](https://mise.jdx.dev/) が、`mise.toml` に書いた版の Go を入れ、よく使う作業をまとめて実行する。
+
+1. mise を入れる（1回だけ）。Mac は `brew install mise`、Windows は `winget install jdx.mise`。そのほかは mise の
+   ドキュメントのとおり。
+2. ソースを取ってきて、Go を入れる。
+
+   ```
+   git clone https://github.com/kentny/udemy-course-design.git
+   cd udemy-course-design
+   git checkout network/lab-tool
+   cd courses/network/tools/tsubame-lab
+   mise trust
+   mise install
+   ```
+
+   `mise trust` は、このディレクトリの `mise.toml` を使ってよいと mise に伝える操作（初回だけ）。
+
+3. テストして、ビルドする。
+
+   ```
+   mise run test
+   mise run build
+   ```
+
+   このディレクトリに `tsubame-lab`（Windows では `tsubame-lab.exe`）ができる。
+
+| 作業 | 内容 |
+|---|---|
+| `mise run test` | 検査（`go vet`）とテスト。8000番・8080番が空いていれば、実際に起動して止める流れも確かめる |
+| `mise run build` | このPC向けの実行ファイルを作る |
+| `mise run dist 0.1.0` | 配布する4つのOS向けのファイルとチェックサムの一覧を `dist/` に作る（macOS・Linux で実行する。`zip` を使う） |
+| `mise run clean` | 作ったファイルを消す |
+
+### mise を使わない
+
+Go（`mise.toml` に書いた版）を自分で入れてから、同じディレクトリで次を実行する。
+
+```
+go vet ./...
+go test ./...
+go build -o tsubame-lab .
+```
+
+Windows では最後の行を `go build -o tsubame-lab.exe .` にする。配布するファイルは `scripts/build.sh 0.1.0` で作る。
+
+### 動かして確かめる
+
+ビルドしたディレクトリで実行する（Windows では `./tsubame-lab` を `.\tsubame-lab.exe` に置き換える）。
+
+| 操作 | ブラウザで `http://127.0.0.1:8000/` を開く（再読み込みする）と |
+|---|---|
+| `./tsubame-lab start` | つばめノートのページ |
+| （アドレスを `/notfound` にする） | app が返す 404 のページ |
+| `./tsubame-lab break app-stop` | proxy が返す 502 のページ |
+| `./tsubame-lab start` | 元に戻る |
+| `./tsubame-lab break proxy-stop` | ブラウザ自身の「アクセスできません」の表示 |
+| `./tsubame-lab start` | 元に戻る |
+| `./tsubame-lab stop` | ツールが終わる |
+
+自分のPCでビルドしたファイルはダウンロードしたものではないので、macOS や Windows の警告は出ない想定（未確認）。
+
 ## 作る人向け
 
-- Go 1.22 以上。外部のライブラリは使わない。
-- テスト: `go test ./...`（既定の番号 8000・8080 が空いていれば、実際に起動する流れも確かめる）。
-- 配布するファイル: `scripts/build.sh 0.1.0` で `dist/` に作る。Windows は `.exe`、macOS は zip、Linux は tar.gz と、
-  チェックサムの一覧 `SHA256SUMS.txt`。
 - リリース: `v0.1.0` のようなタグを付けると、`.github/workflows/release.yml` がリリースページに置く（公開リポジトリに移してから有効）。
 - 仕組み: `start` は自分自身を常駐プロセスとして起動する。コマンドと常駐プロセスは、作業ディレクトリの `desired.json`
   （こうしてほしい状態）と `runtime.json`（今の状態）でやりとりする。制御用の番号では待ち受けない（受講者が待ち受けの一覧を
