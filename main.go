@@ -1,4 +1,4 @@
-// tsubame-lab は、ネットワーク基礎講座の練習用ツール。受講者のPCの中だけで、つばめノートのミニ版
+// tsubame-lab は、ネットワーク基礎コースの練習用ツール。受講者のPCの中だけで、つばめノートのミニ版
 // （proxy と app）を動かし、故障を起こして直す練習に使う。PCの設定は変えない。
 package main
 
@@ -16,7 +16,7 @@ import (
 // version はリリースのときに -ldflags "-X main.version=..." で埋め込む。
 var version = "0.1.0-dev"
 
-const usage = `tsubame-lab: ネットワーク基礎講座の練習用ツール
+const usage = `tsubame-lab: ネットワーク基礎コースの練習用ツール
 
 使い方:
   tsubame-lab start              全部の部品を起動する（止まっている部品だけを起動する）
