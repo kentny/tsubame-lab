@@ -28,7 +28,7 @@ const upstreamTimeout = 5 * time.Second
 
 type proxyCtxKey struct{}
 
-// 1つの要求について、取り次いだかどうかと上流の返事の番号を記録する。
+// 1つの要求について、取り次いだかどうかと上流の応答の番号を記録する。
 type forwardInfo struct {
 	forwarded bool
 	status    int
@@ -118,7 +118,7 @@ func (p *proxy) acceptsHost(hostport string) bool {
 // 上流に取り次げなかったとき。待ちきれなければ 504、それ以外（接続を断られたなど）は 502。
 func (p *proxy) upstreamError(w http.ResponseWriter, r *http.Request, err error) {
 	if errors.Is(err, context.Canceled) {
-		// ブラウザ側が待つのをやめた。返事は誰にも届かない。
+		// ブラウザ側が待つのをやめた。応答は誰にも届かない。
 		w.WriteHeader(499)
 		return
 	}

@@ -60,7 +60,7 @@ func appNotesPage() string {
 
 func appSlowPage() string {
 	return appLayout("時間のかかるページ - つばめノート（練習用）",
-		"<h1>時間のかかるページ</h1>\n<p>このページは、返事までわざと時間をかけています。</p>")
+		"<h1>時間のかかるページ</h1>\n<p>このページは、応答までわざと時間をかけています。</p>")
 }
 
 func appErrorPage(code int, reason, message string) string {
