@@ -48,7 +48,7 @@ func TestDay1Flow(t *testing.T) {
 		t.Helper()
 		resp, err := client.Get("http://127.0.0.1:8000/")
 		if err != nil {
-			return 0 // 応答が見えていない
+			return 0 // 接続できず、応答が返らない
 		}
 		io.Copy(io.Discard, resp.Body)
 		resp.Body.Close()
