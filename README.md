@@ -8,7 +8,22 @@
 - PCのネットワーク設定、ファイアウォール、DNS、hosts、信頼設定（ルート証明書）は変えない。
 - 状態とログはホームの下の `tsubame-lab/` にだけ置き、`reset` で作り直す。要らなくなったら、実行ファイルとこのディレクトリを消せばよい。
 
-コースの中での使い方と仕様は、コースの演習の資料（`../../exercises/lab-tool.md`）にある。
+Udemy のコース「ネットワーク基礎」の講義で、講師と一緒に使う。
+
+## ダウンロード
+
+[リリースページ](https://github.com/kentny/tsubame-lab/releases) から、自分のOSのファイルを1つダウンロードする。
+ファイルは、このページからだけダウンロードする。
+
+| OS | ファイル |
+|---|---|
+| Windows（x64） | `tsubame-lab-windows-x64.exe` |
+| macOS（Apple シリコン） | `tsubame-lab-macos-apple-silicon.zip` |
+| macOS（Intel） | `tsubame-lab-macos-intel.zip` |
+| Linux（x64） | `tsubame-lab-linux-x64.tar.gz` |
+
+署名を付けていないので、開くときに OS の警告が出ることがある。このページから取ったファイルなら、警告の画面で、それでも開く、という意味の選択肢を選んで進める。
+ダウンロードしたファイルが壊れていないかは、同じページの `SHA256SUMS.txt` と比べて確かめられる。
 
 ## 中で動くもの
 
@@ -53,10 +68,8 @@
 ### make を使う
 
 ```
-git clone https://github.com/kentny/udemy-course-design.git
-cd udemy-course-design
-git checkout network/lab-tool
-cd courses/network/tools/tsubame-lab
+git clone https://github.com/kentny/tsubame-lab.git
+cd tsubame-lab
 make test
 make build
 ```
@@ -100,7 +113,7 @@ Mac・Linux では最後の行を `go build -o tsubame-lab .` にする。
 
 ## 作る人向け
 
-- リリース: `v0.1.0` のようなタグを付けると、`.github/workflows/release.yml` がリリースページに置く（公開リポジトリに移してから有効）。
+- リリース: `v0.1.0` のようなタグを付けると、`.github/workflows/release.yml` がリリースページに置く。
 - 仕組み: `start` は自分自身を常駐プロセスとして起動する。コマンドと常駐プロセスは、作業ディレクトリの `desired.json`
   （こうしてほしい状態）と `runtime.json`（今の状態）でやりとりする。制御用の番号では待ち受けない（受講者が待ち受けの一覧を
   見たときに、コースで扱う部品だけが見えるように）。
