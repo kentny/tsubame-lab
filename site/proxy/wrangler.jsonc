@@ -1,0 +1,7 @@
+{
+  "name": "tsubame-proxy",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "services": [{ "binding": "APP", "service": "tsubame-app" }]
+}
