@@ -31,4 +31,6 @@ cd site/app && npm install && npx wrangler deploy
 cd ../proxy && npm install && npx wrangler deploy
 ```
 
-A freshly deployed workers.dev URL can return 404 for up to about a minute.
+A freshly deployed workers.dev URL can return 404, or 500 for some paths, for up to about a minute. Do not redeploy right before recording.
+
+Both Workers deploy to the Cloudflare account `network-course` (pinned by `account_id` in each `wrangler.jsonc`). The entry Worker is named `notes`, so the public URL is https://notes.tsubame-lab.workers.dev/ (same shape as the course diagram's `notes.example.com`).

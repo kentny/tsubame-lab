@@ -1,5 +1,6 @@
 {
-  "name": "tsubame-proxy",
+  "name": "notes",
+  "account_id": "6e2123ba67de8ba95c1710c7d1096a8e",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
   "workers_dev": true,
