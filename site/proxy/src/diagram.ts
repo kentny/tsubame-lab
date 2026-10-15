@@ -146,7 +146,7 @@ const narrow: Layout = {
       from: [206, 310],
       to: [206, 230],
       label: "④ レスポンス",
-      labelAt: { x: 220, y: 266, anchor: "start" },
+      labelAt: { x: 228, y: 266, anchor: "start" },
       noteAt: { x: 0, y: 0, anchor: "start" },
     },
     {
