@@ -1,10 +1,12 @@
-import { labPage, proxyErrorPage } from "./pages";
+import { labPage } from "./lab-page";
+import { proxyErrorPage } from "./pages";
 
 interface Env {
   APP: Fetcher;
+  UPSTREAM_TIMEOUT_MS?: string;
 }
 
-const UPSTREAM_TIMEOUT_MS = 5_000;
+const DEFAULT_TIMEOUT_MS = 5_000;
 const COOKIE_ATTRS = "Path=/; Secure; HttpOnly; SameSite=Lax";
 const REASONS: Readonly<Record<number, string>> = {
   502: "Bad Gateway",
@@ -68,9 +70,8 @@ const methodNotAllowed = (allow: string): Response =>
   });
 
 async function forward(request: Request, env: Env): Promise<Response> {
-  const timeout = new Promise<"timeout">((resolve) =>
-    setTimeout(() => resolve("timeout"), UPSTREAM_TIMEOUT_MS),
-  );
+  const limit = Number(env.UPSTREAM_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS;
+  const timeout = new Promise<"timeout">((resolve) => setTimeout(() => resolve("timeout"), limit));
   try {
     const result = await Promise.race([env.APP.fetch(request), timeout]);
     if (result === "timeout") return errorResponse(504);

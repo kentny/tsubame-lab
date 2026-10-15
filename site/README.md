@@ -8,7 +8,19 @@ Two separate Workers, so a 502/504 is produced by a different component than the
   Routes: `/`, `/notes/`, `/error` (500), `/slow` (15 s, then 200), anything else 404.
 - `proxy/`: `tsubame-proxy` on workers.dev. Forwards to the app (5 s timeout -> 504,
   app stopped or unreachable -> 502). `/_lab/` is a control page that stops/starts the app
-  per learner via the `tsubame_app=stopped` cookie.
+  per learner via the `tsubame_app=stopped` cookie. The page shows the course's common diagram
+  (PC, resolver, proxy, app server with numbered arrows) and lets learners open `/`, `/notes/`,
+  `/notfound`, `/error`, `/slow`, animating how far the request got. Sources: `proxy/src/diagram.ts`,
+  `lab-page.ts`, `lab-style.ts`, `lab-script.ts`.
+
+## Test
+
+```
+cd site/proxy && npm test
+```
+
+Integration tests run in `@cloudflare/vitest-pool-workers` with the app bound as an auxiliary
+Worker. The upstream timeout can be shortened with the `UPSTREAM_TIMEOUT_MS` env var (default 5000).
 
 ## Deploy
 
