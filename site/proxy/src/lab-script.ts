@@ -28,10 +28,10 @@ export const labScript = String.raw`
   function stopTimers() { clearInterval(ticker); clearTimeout(stepTimer); }
 
   function whereStopped(status, served) {
-    if (served === "tsubame-app") return "アプリのサーバーまで届いて、アプリのサーバーが返事を作りました。";
-    if (status === 502) return "③ で止まりました。取り次ぎ役がアプリのサーバーにつなげず、取り次ぎ役が返事を作りました。";
-    if (status === 504) return "③ の返事が来ませんでした。待ちきれず、取り次ぎ役が返事を作りました。";
-    return "取り次ぎ役が返事を作りました。";
+    if (served === "tsubame-app") return "アプリのサーバーまで届き、アプリのサーバーがレスポンスを返しました。";
+    if (status === 502) return "③ で止まりました。取り次ぎ役はアプリのサーバーにつなげず、自分でレスポンスを作って返しました。";
+    if (status === 504) return "③ で、アプリのサーバーから返事が来ませんでした。取り次ぎ役は待ちきれず、自分でレスポンスを作って返しました。";
+    return "取り次ぎ役がレスポンスを返しました。";
   }
 
   function showResult(path, status, served, elapsed) {
@@ -59,7 +59,7 @@ export const labScript = String.raw`
     var code = document.getElementById("r-code");
     code.textContent = "×";
     code.className = "code bad";
-    text("r-reason", "返事がありません");
+    text("r-reason", "レスポンスなし");
     text("r-who", "なし");
     text("r-time", seconds(elapsed) + " 秒");
     text("r-where", "② で止まりました。リクエストが取り次ぎ役に届きませんでした。");

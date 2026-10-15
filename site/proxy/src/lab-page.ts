@@ -15,7 +15,7 @@ const resultPanel = `<div class="result" aria-live="polite">
 <div><p id="r-code" class="code"></p><p id="r-reason" class="reason"></p></div>
 <div>
 <dl class="facts">
-<dt>返事を作ったのは</dt><dd id="r-who"></dd>
+<dt>レスポンスを返したのは</dt><dd id="r-who"></dd>
 <dt>かかった時間</dt><dd id="r-time"></dd>
 <dt>届いた範囲</dt><dd id="r-where"></dd>
 </dl>

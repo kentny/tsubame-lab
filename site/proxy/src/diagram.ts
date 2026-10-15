@@ -204,7 +204,7 @@ function arrowSvg(a: ArrowSpec, layout: Layout): string {
 
 function boxSvg(b: Box, layout: Layout, appRunning: boolean): string {
   const name = text("name", { x: b.x + (layout.cls === "d-wide" ? b.w / 2 : 16), y: b.y + (layout.cls === "d-wide" ? 55 : 44), anchor: layout.cls === "d-wide" ? "middle" : "start" }, layout.nameSize, b.name);
-  const tag = b.id === "proxy" || b.id === "app" ? text(`tag tag-${b.id}`, layout.tagAt(b), layout.smallSize, "返事を作った") : "";
+  const tag = b.id === "proxy" || b.id === "app" ? text(`tag tag-${b.id}`, layout.tagAt(b), layout.smallSize, "ここが返した") : "";
   let state = "";
   if (b.id === "app") {
     const at = layout.stateAt(b);
