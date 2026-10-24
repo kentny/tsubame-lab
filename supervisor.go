@@ -35,7 +35,9 @@ func (c *component) start() {
 	if c.srv != nil {
 		return
 	}
-	ln, err := net.Listen("tcp", c.addr)
+	// 部品の待ち受けアドレスはすべて IPv4。"tcp" で 0.0.0.0 を指定すると、Go は IPv6 と兼用の待ち受け（ss では *:8080）を
+	// 作るので、"tcp4" にして ss の表示を講義どおり 0.0.0.0:8080 にそろえる。
+	ln, err := net.Listen("tcp4", c.addr)
 	if err != nil {
 		c.state, c.err = stateError, listenErrorMessage(c.addr, err)
 		return

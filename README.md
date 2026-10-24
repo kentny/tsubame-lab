@@ -10,6 +10,12 @@
 
 Udemy のコース「ネットワーク基礎」の講義で、講師と一緒に使う。
 
+## Codespaces で使う
+
+ブラウザで https://codespaces.new/kentny/tsubame-lab を開き、Codespace を作る。作るときに `.devcontainer/` の設定で
+tsubame-lab をビルドして `/usr/local/bin` に置き、講義で使う道具（curl、ss、tcpdump など）も入れるので、ターミナルが開いたら
+すぐ `tsubame-lab start` を打てる。
+
 ## ダウンロード
 
 [リリースページ](https://github.com/kentny/tsubame-lab/releases) から、自分のOSのファイルを1つダウンロードする。
