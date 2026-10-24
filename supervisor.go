@@ -86,16 +86,27 @@ func supervise() error {
 		return err
 	}
 
+	theApp := newApp(appLog)
 	comps := map[string]*component{
-		"app":   {name: "app", addr: defaultAddrs["app"], handler: newApp(appLog), state: stateStopped},
+		"app":   {name: "app", addr: defaultAddrs["app"], handler: theApp, state: stateStopped},
 		"proxy": {name: "proxy", addr: defaultAddrs["proxy"], handler: newProxy(defaultAddrs["app"], defaultServerNames, accessLog, errorLog), state: stateStopped},
 	}
 
 	var applied int64 = -1
+	current := map[string]string{}
 	write := func() {
-		st := runtimeState{PID: os.Getpid(), Heartbeat: time.Now().UnixMilli(), Applied: applied, Components: map[string]componentStatus{}}
+		st := runtimeState{PID: os.Getpid(), Heartbeat: time.Now().UnixMilli(), Applied: applied,
+			Components: map[string]componentStatus{}, Settings: map[string]string{}}
 		for name, c := range comps {
 			st.Components[name] = componentStatus{Addr: c.addr, State: c.state, Error: c.err}
+		}
+		if theApp.silent.Load() {
+			cs := st.Components["app"]
+			cs.Note = "応答しない設定"
+			st.Components["app"] = cs
+		}
+		for _, name := range settingOrder {
+			st.Settings[name] = settingValue(current, name)
 		}
 		writeJSON(p.runtime, st)
 	}
@@ -119,6 +130,14 @@ func supervise() error {
 				}
 				os.Remove(p.runtime)
 				return nil
+			}
+			// 設定を反映する。待ち受けアドレスが変わったら、app を新しいアドレスで待ち受け直す。
+			current = d.Settings
+			theApp.silent.Store(settingValue(current, "app.silent") == "on")
+			// 起動するかどうかは、すぐ下の Components の指示で決まる。
+			if a := comps["app"]; a.addr != appAddr(current) {
+				a.stop()
+				a.addr = appAddr(current)
 			}
 			// 起動は奥（app）から、停止は手前（proxy）から。
 			for _, name := range []string{"app", "proxy"} {
