@@ -4,11 +4,17 @@
 わざと故障を起こして、ブラウザや curl で観察し、直す練習に使う。
 
 - ダウンロードした1ファイルを実行するだけで動く。インストールも管理者権限もいらない。
-- 待ち受けるのは `127.0.0.1`（このPC自身）だけで、ほかの機器からは見えない。
+- 待ち受けるのは `127.0.0.1`（このPC自身）だけで、ほかの機器からは見えない（`set app.bind` で app の待ち受けを変えたときを除く）。
 - PCのネットワーク設定、ファイアウォール、DNS、hosts、信頼設定（ルート証明書）は変えない。
 - 状態とログはホームの下の `tsubame-lab/` にだけ置き、`reset` で作り直す。要らなくなったら、実行ファイルとこのディレクトリを消せばよい。
 
 Udemy のコース「ネットワーク基礎」の講義で、講師と一緒に使う。
+
+## Codespaces で使う
+
+ブラウザで https://codespaces.new/kentny/tsubame-lab を開き、Codespace を作る。作るときに `.devcontainer/` の設定で
+tsubame-lab をビルドして `/usr/local/bin` に置き、講義で使う道具（curl、ss、tcpdump など）も入れるので、ターミナルが開いたら
+すぐ `tsubame-lab start` を打てる。
 
 ## ダウンロード
 
@@ -43,11 +49,24 @@ Udemy のコース「ネットワーク基礎」の講義で、講師と一緒�
 | `tsubame-lab status` | 部品ごとの待ち受けと状態を表示する |
 | `tsubame-lab break app-stop` | app を止める |
 | `tsubame-lab break proxy-stop` | proxy を止める |
+| `tsubame-lab break app-bind-local` | app の待ち受けを 127.0.0.1 だけにする（既定と同じ状態を、故障として起こす） |
+| `tsubame-lab break app-silent` | app が、接続を受け付けても何も返さないようにする |
+| `tsubame-lab set` | 設定の項目と今の値を表示する |
+| `tsubame-lab set <項目> <値>` | 設定を変える（下の「設定」） |
 | `tsubame-lab reset` | 初期状態に戻す（作業ディレクトリを作り直して起動する） |
 | `tsubame-lab logs` | ログの場所を表示する |
 | `tsubame-lab version` | 版を表示する |
 
 `start` の後は、端末を閉じても部品は動き続ける。終わるときは `stop` を実行する。
+
+## 設定
+
+`set` で変えた設定は、`reset` と、ツールを止めてから `start` し直したときに既定値に戻る。
+
+| 項目 | 既定値 | 内容 |
+|---|---|---|
+| `app.bind` | `127.0.0.1` | app が待ち受けるIPアドレス。`0.0.0.0` にすると、この機器のすべてのIPアドレスで待ち受ける（ほかの機器からも見える）。確かめたら `127.0.0.1` に戻す。番号（8080）は変わらない |
+| `app.silent` | `off` | `on` にすると、app は接続を受け付けてリクエストを読んだまま、何も返さない。curl では `Connected to` の後に `Operation timed out`、proxy 経由では5秒後に 504 になる |
 
 ## ログ
 
@@ -55,7 +74,7 @@ Udemy のコース「ネットワーク基礎」の講義で、講師と一緒�
 |---|---|
 | `logs/proxy-access.log` | `2026-10-12T09:37:31.763+09:00 client=127.0.0.1:41576 host=127.0.0.1:8000 "GET / HTTP/1.1" status=200 forward=127.0.0.1:8080 forward_status=200 rt=0.001` |
 | `logs/proxy-error.log` | `2026-10-12T09:37:31.827+09:00 [error] "GET /" upstream=127.0.0.1:8080 status=502: connect: connection refused` |
-| `logs/app.log` | `2026-10-12T00:37:31.763Z GET / 200 dur_ms=0`（app のログは UTC） |
+| `logs/app.log` | `2026-10-12T00:37:31.763Z GET / 200 dur_ms=0`（app のログは UTC）。`app.silent on` で何も返さなかったときは `GET / no-response dur_ms=5001` |
 
 ## ビルドのしかた
 

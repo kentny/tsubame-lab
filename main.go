@@ -22,7 +22,9 @@ const usage = `tsubame-lab: ネットワーク基礎コースの練習用ツー�
   tsubame-lab start              全部の部品を起動する（止まっている部品だけを起動する）
   tsubame-lab stop               全部の部品を止めて、ツールを終わる
   tsubame-lab status             部品ごとの待ち受けと状態を表示する
-  tsubame-lab break <状態>       故障を起こす（app-stop、proxy-stop）
+  tsubame-lab break <状態>       故障を起こす（app-stop、proxy-stop、app-bind-local、app-silent）
+  tsubame-lab set                設定の項目と今の値を表示する
+  tsubame-lab set <項目> <値>    設定を変える（例: set app.bind 0.0.0.0、set app.silent off）
   tsubame-lab reset              初期状態に戻す（作業ディレクトリを作り直して起動する）
   tsubame-lab logs               ログの場所を表示する
   tsubame-lab version            版を表示する
@@ -56,6 +58,8 @@ func run(args []string) int {
 		} else {
 			err = cmdBreak(args[1])
 		}
+	case "set":
+		err = cmdSet(args[1:])
 	case "reset":
 		err = cmdReset()
 	case "logs":
@@ -76,10 +80,21 @@ func run(args []string) int {
 	return 0
 }
 
-// breaks は break の状態名と、それで止める部品。
-var breaks = map[string]string{
-	"app-stop":   "app",
-	"proxy-stop": "proxy",
+// breakAction は break で起こす故障。部品を止めるか、設定を変える。
+type breakAction struct {
+	stop    string // 止める部品
+	setting string // 変える設定の項目
+	value   string
+	msg     string
+}
+
+// breaks は break の状態名と、起こす故障。
+var breaks = map[string]breakAction{
+	"app-stop":   {stop: "app", msg: "app を止めました。"},
+	"proxy-stop": {stop: "proxy", msg: "proxy を止めました。"},
+	// 既定と同じ状態だが、故障として明示して起こす（Day 6）。
+	"app-bind-local": {setting: "app.bind", value: "127.0.0.1", msg: "app の待ち受けを 127.0.0.1 だけにしました。"},
+	"app-silent":     {setting: "app.silent", value: "on", msg: "app が、接続を受け付けても何も返さないようにしました。"},
 }
 
 func cmdStart() error {
@@ -107,7 +122,7 @@ func cmdStart() error {
 }
 
 func cmdBreak(name string) error {
-	comp, ok := breaks[name]
+	act, ok := breaks[name]
 	if !ok {
 		names := make([]string, 0, len(breaks))
 		for n := range breaks {
@@ -123,11 +138,62 @@ func cmdBreak(name string) error {
 	if !readRuntime(p).alive(time.Now()) {
 		return errors.New("ツールが動いていません。先に tsubame-lab start を実行してください")
 	}
-	if _, err := update(p, func(d *desired) { d.Components[comp] = stateStopped }, false); err != nil {
+	if _, err := update(p, func(d *desired) {
+		if act.stop != "" {
+			d.Components[act.stop] = stateStopped
+		}
+		if act.setting != "" {
+			d.Settings[act.setting] = act.value
+		}
+	}, false); err != nil {
 		return err
 	}
-	fmt.Printf("%s を止めました。\n", comp)
+	fmt.Println(act.msg)
 	return nil
+}
+
+func cmdSet(args []string) error {
+	p, err := newPaths()
+	if err != nil {
+		return err
+	}
+	r := readRuntime(p)
+	if !r.alive(time.Now()) {
+		return errors.New("ツールが動いていません。先に tsubame-lab start を実行してください")
+	}
+	if len(args) == 0 {
+		printSettings(r)
+		return nil
+	}
+	s, ok := settings[args[0]]
+	if !ok {
+		return fmt.Errorf("%q という項目はありません（使える項目: %s）", args[0], strings.Join(settingOrder, "、"))
+	}
+	if len(args) != 2 {
+		return fmt.Errorf("値を1つ付けてください（例: tsubame-lab set %s %s）", s.name, s.def)
+	}
+	v, err := s.check(args[1])
+	if err != nil {
+		return err
+	}
+	r, err = update(p, func(d *desired) { d.Settings[s.name] = v }, false)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s を %s にしました。\n", s.name, v)
+	if s.name == "app.bind" {
+		printStatus(r)
+		if failed := failures(r); len(failed) > 0 {
+			return fmt.Errorf("起動できない部品があります。\n%s", strings.Join(failed, "\n"))
+		}
+	}
+	return nil
+}
+
+func printSettings(r *runtimeState) {
+	for _, name := range settingOrder {
+		fmt.Printf("  %-11s %-10s %s\n", name, settingValue(r.Settings, name), settings[name].help)
+	}
 }
 
 func cmdStop() error {
@@ -200,7 +266,11 @@ func printStatus(r *runtimeState) {
 		if !ok {
 			continue
 		}
-		fmt.Printf("  %-6s %-16s %s\n", name, c.Addr, stateLabels[c.State])
+		label := stateLabels[c.State]
+		if c.Note != "" && c.State == stateRunning {
+			label += "（" + c.Note + "）"
+		}
+		fmt.Printf("  %-6s %-16s %s\n", name, c.Addr, label)
 	}
 }
 
@@ -221,8 +291,9 @@ func update(p paths, change func(*desired), spawn bool) (*runtimeState, error) {
 	running := r.alive(time.Now())
 	d := readDesired(p)
 	if !running {
-		// 前回の指示は捨て、常駐プロセスの初期状態（全部止まっている）から始める。
+		// 前回の指示は捨て、常駐プロセスの初期状態（全部止まっていて、設定は既定値）から始める。
 		d.Components = map[string]string{}
+		d.Settings = map[string]string{}
 		d.Exit = false
 	}
 	d.Seq++

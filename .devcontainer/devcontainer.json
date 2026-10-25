@@ -1,0 +1,24 @@
+// Practice environment for the network course. Learners open it in GitHub Codespaces;
+// it builds tsubame-lab from this repo and puts it on PATH so no download is needed.
+{
+  "name": "tsubame-lab",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/go:1": { "version": "1.22" },
+    // Needed for `gh codespace ssh`, which the instructor uses to check the environment.
+    "ghcr.io/devcontainers/features/sshd:1": {}
+  },
+  "hostRequirements": { "cpus": 2 },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": { "label": "proxy", "onAutoForward": "silent" },
+    "8080": { "label": "app", "onAutoForward": "ignore" }
+  },
+  "otherPortsAttributes": { "onAutoForward": "ignore" },
+  "customizations": {
+    "vscode": {
+      "settings": { "workbench.startupEditor": "none", "terminal.integrated.defaultProfile.linux": "bash" }
+    }
+  }
+}

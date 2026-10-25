@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"net/http"
+	"sync/atomic"
 	"time"
 )
 
@@ -12,6 +13,8 @@ type app struct {
 	log *lineLogger
 	// slowDelay は /slow の応答までの時間。テストでは短くする。
 	slowDelay time.Duration
+	// silent が true の間は、接続を受け付けてリクエストを読んだまま、何も返さない（set app.silent on。Day 6）。
+	silent atomic.Bool
 }
 
 func newApp(log *lineLogger) *app {
@@ -20,6 +23,14 @@ func newApp(log *lineLogger) *app {
 
 func (a *app) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
+	if a.silent.Load() {
+		// 相手が待つのをやめて接続を閉じるまで、何も返さない。
+		<-r.Context().Done()
+		a.log.printf("%s %s %s no-response dur_ms=%d",
+			time.Now().UTC().Format("2006-01-02T15:04:05.000Z"),
+			r.Method, r.URL.RequestURI(), time.Since(start).Milliseconds())
+		return
+	}
 	rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 	a.route(rec, r)
 	// app のログは UTC（Day 12 の時刻の突き合わせで使う）。

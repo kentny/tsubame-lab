@@ -56,13 +56,16 @@ const (
 type desired struct {
 	Seq        int64             `json:"seq"`
 	Components map[string]string `json:"components"`
-	Exit       bool              `json:"exit"`
+	// Settings は set で変えた設定（項目名 → 値）。書いていない項目は既定値。
+	Settings map[string]string `json:"settings,omitempty"`
+	Exit     bool              `json:"exit"`
 }
 
 type componentStatus struct {
 	Addr  string `json:"addr"`
 	State string `json:"state"`
 	Error string `json:"error,omitempty"`
+	Note  string `json:"note,omitempty"`
 }
 
 type runtimeState struct {
@@ -70,6 +73,7 @@ type runtimeState struct {
 	Heartbeat  int64                      `json:"heartbeat"` // UnixMilli
 	Applied    int64                      `json:"applied"`
 	Components map[string]componentStatus `json:"components"`
+	Settings   map[string]string          `json:"settings"`
 }
 
 // 常駐プロセスは heartbeatInterval ごとに runtime を書き直す。staleAfter より古ければ止まっているとみなす。
@@ -129,9 +133,12 @@ func readRuntime(p paths) *runtimeState {
 }
 
 func readDesired(p paths) desired {
-	d := desired{Components: map[string]string{}}
+	d := desired{Components: map[string]string{}, Settings: map[string]string{}}
 	if err := readJSON(p.desired, &d); err != nil || d.Components == nil {
 		d.Components = map[string]string{}
+	}
+	if d.Settings == nil {
+		d.Settings = map[string]string{}
 	}
 	return d
 }
