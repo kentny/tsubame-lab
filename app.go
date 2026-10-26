@@ -43,6 +43,11 @@ func (a *app) route(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/":
 		writePage(w, http.StatusOK, "no-store", appTopPage())
+	case "/health":
+		// Day 5 の curl の講義で -v の出力を短く読めるように、本文は ok だけにし、ヘッダも増やさない。
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "ok\n")
 	case "/notes/":
 		a.notes(w, r)
 	case "/error":

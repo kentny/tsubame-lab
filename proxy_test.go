@@ -169,3 +169,26 @@ func TestNotesETag(t *testing.T) {
 		t.Errorf("status = %d", resp.StatusCode)
 	}
 }
+
+func TestAppHealth(t *testing.T) {
+	// Given - app が動いている
+	addr := startApp(t)
+
+	// When - /health に GET を送る
+	resp, err := http.Get("http://" + addr + "/health")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	// Then - 200 で、本文は ok と改行だけ（curl の出力で次の行と混ざらないように）
+	if resp.StatusCode != 200 {
+		t.Errorf("status = %d", resp.StatusCode)
+	}
+	if ct := resp.Header.Get("Content-Type"); ct != "text/plain" {
+		t.Errorf("Content-Type = %q", ct)
+	}
+	if b := body(t, resp); b != "ok\n" {
+		t.Errorf("body = %q", b)
+	}
+}
